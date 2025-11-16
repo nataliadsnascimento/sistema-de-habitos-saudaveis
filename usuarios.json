@@ -1,15 +1,15 @@
-[ {
+[  {
   "id" : 1,
-  "nome" : "Usuário Teste",
-  "email" : "teste@email.com",
-  "idade" : 30,
-  "peso" : 80.0,
-  "altura" : 1.8
+  "nome" : "Letícia Guardiola",
+  "email" : "leticiaguardiolaabreus@gmail.com",
+  "idade" : 19,
+  "peso" : 60.5,
+  "altura" : 1.66
 }, {
   "id" : 2,
-  "nome" : "Usuário Teste",
-  "email" : "teste@email.com",
-  "idade" : 30,
-  "peso" : 80.0,
-  "altura" : 1.8
+  "nome" : "João Marcelo",
+  "email" : "joaomarcelocoelho1@gmail.com",
+  "idade" : 18,
+  "peso" : 68.0,
+  "altura" : 1.75
 } ]
