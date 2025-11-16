@@ -5,4 +5,11 @@
   "idade" : 30,
   "peso" : 80.0,
   "altura" : 1.8
+}, {
+  "id" : 2,
+  "nome" : "Usuário Teste",
+  "email" : "teste@email.com",
+  "idade" : 30,
+  "peso" : 80.0,
+  "altura" : 1.8
 } ]

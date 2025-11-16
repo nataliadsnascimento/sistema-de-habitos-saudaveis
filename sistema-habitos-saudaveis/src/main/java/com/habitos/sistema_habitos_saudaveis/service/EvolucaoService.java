@@ -21,18 +21,13 @@ public class EvolucaoService {
         List<RegistroDiario> registrosEncontrados =
                 registroRepository.findByUsuarioIdAndDataBetween(usuarioId, dataInicio, dataFim);
 
-        // --- CÁLCULO REAL DE PROGRESSO ---
-
-        // Total de registros encontrados (valor que você calculou como 4)
+        // --- CÁLCULO DE PROGRESSO ---
         long totalRegistros = registrosEncontrados.size();
-
-        // Número de dias no período
         long totalDiasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1;
 
         double progresso;
 
         if (totalDiasNoPeriodo > 0) {
-            // Cálculo do progresso: Registros / Dias no Período
             progresso = (double) totalRegistros / totalDiasNoPeriodo;
         } else {
             progresso = 0.0;
@@ -40,13 +35,16 @@ public class EvolucaoService {
 
         progresso = Math.round(progresso * 100.0) / 100.0; // Arredonda para 2 casas
 
-        // Retorna o objeto Evolucao com o novo campo
+        // NOVO FORMATO DA META: INCLUI AS DATAS DE INÍCIO E FIM
         String metaDetalhada = String.format(
-                "Análise do período: %d dias. Meta: %d registros.",
+                "Análise do período: %s até %s (%d dias). Total de registros: %d.",
+                dataInicio.toString(),
+                dataFim.toString(),
                 totalDiasNoPeriodo,
                 totalRegistros
         );
 
+        // O construtor Evolucao foi atualizado em uma etapa anterior para aceitar 3 parâmetros
         return new Evolucao(metaDetalhada, progresso, totalRegistros);
     }
 }
