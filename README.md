@@ -1,22 +1,48 @@
-# 💚 Sistema de Acompanhamento de Hábitos Saudáveis
+# 📊 Sistema de Hábitos Saudáveis
+![Status](https://img.shields.io/badge/status-em_desenvolvimento-yellow)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## 🎯 Objetivo do Projeto
 
-Este projeto consiste no desenvolvimento de uma **API RESTful** para monitorar e gerenciar hábitos saudáveis...
+Este projeto consiste no desenvolvimento de uma **API RESTful** para monitorar e gerenciar hábitos saudáveis.
 
-A aplicação foi desenvolvida em **Java** e utiliza o framework **Spring Boot** para construir uma arquitetura robusta baseada em Programação Orientada a Objetos (POO).
-
----
-
-## ✨ Funcionalidades (APIs REST)
-
-...
+A aplicação foi desenvolvida em **Java** e utiliza o framework **Spring Boot** para construir uma arquitetura robusta baseada em Programação Orientada a Objetos (POO), seguindo os padrões de Controller, Service e Repository.
 
 ---
 
-## 💻 Tecnologias e Requisitos Essenciais
+## Funcionalidades
 
-Este projeto adere aos requisitos de um projeto Java com Spring Boot, garantindo uma arquitetura limpa e moderna:
+A API gerencia três entidades principais e uma lógica de negócio:
+
+### 1. Usuários (`/usuarios`)
+* `POST /usuarios`: Cria um novo usuário.
+* `GET /usuarios`: Lista todos os usuários.
+* `GET /usuarios/{id}`: Busca um usuário por ID.
+* `PUT /usuarios/{id}`: Atualiza um usuário.
+* `DELETE /usuarios/{id}`: Deleta um usuário.
+* `GET /usuarios/{id}/imc`: Calcula o IMC (Índice de Massa Corporal) do usuário.
+
+### 2. Hábitos (`/habitos`)
+* `POST /habitos`: Cria um novo hábito.
+* `GET /habitos`: Lista todos os hábitos.
+* `GET /habitos/{id}`: Busca um hábito por ID.
+* `PUT /habitos/{id}`: Atualiza um hábito.
+* `DELETE /habitos/{id}`: Deleta um hábito.
+
+### 3. Registros Diários (`/registros`)
+* `POST /registros`: Cria um novo registro de hábito.
+* `GET /registros/{id}`: Busca um registro por ID.
+* `GET /registros?usuarioId={id}&dataInicio={data}&dataFim={data}`: Busca registros por período e usuário.
+* `PUT /registros/{id}`: Atualiza um registro.
+* `DELETE /registros/{id}`: Deleta um registro.
+
+### 4. Evolução (`/evolucao`)
+* `GET /evolucao?usuarioId={id}&dataInicio={data}&dataFim={data}`: Gera um relatório de progresso do usuário em um período.
+* `GET /evolucao/demo`: Gera um relatório de demonstração dos últimos 7 dias para o usuário ID 1.
+
+---
+
+## Tecnologias utilizadas
 
 | Categoria | Requisito | Aplicação |
 | :--- | :--- | :--- |
@@ -26,19 +52,14 @@ Este projeto adere aos requisitos de um projeto Java com Spring Boot, garantindo
 | **Spring Core** | Injeção de Dependência (DI) | Uso de DI com anotações Spring essenciais: `@RestController`, `@Service`, `@Repository`. |
 | **Persistência** | Dados Temporários | Gerenciamento de coleções de dados com **ArrayList** na camada de Serviço. |
 | **Persistência** | Armazenamento | Dados persistidos e transferidos no formato **JSON**. |
-| **Estabilidade** | Tratamento de Exceções | Implementado em todas as camadas para garantir robustez. |
-| **Testes** | Entrada de Dados | Uso de `Scanner` pode ser incluído para testes iniciais de console|
 
 ---
 
-## 🚀 Como Executar o Projeto (Backend)
-
-Siga os passos abaixo para clonar o repositório e rodar a aplicação Spring Boot na sua máquina local.
+## 💻 Como Executar o Projeto
 
 ### Pré-requisitos
 * **Java JDK 21**
 * **Maven**
-* IDE (IntelliJ IDEA, VS Code ou Eclipse)
 
 ### Passos
 1.  **Clone o repositório:**
@@ -76,11 +97,7 @@ Este projeto foi desenvolvido por:
 | Letícia Guardiola | [@leticiaguardiolaabbreus-gif](https://github.com/leticiaguardiolaabreus-gif) |
 | João Marcelo | [@cruz-jmc](https://github.com/cruz-jmc)|
 
-
-
-<br>
-<br>
-
+---
 ## 📄 Licença
 
 Este projeto está licenciado sob a Licença MIT
