@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/sistema-front/Sistema-Front.iml" filepath="$PROJECT_DIR$/sistema-front/Sistema-Front.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/sistema-de-habitos-saudaveis.iml" filepath="$PROJECT_DIR$/.idea/sistema-de-habitos-saudaveis.iml" />
     </modules>
   </component>

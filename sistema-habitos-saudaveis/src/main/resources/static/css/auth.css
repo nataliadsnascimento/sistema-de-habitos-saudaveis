@@ -1,0 +1,98 @@
+/* =================================== */
+/* CSS: Estilos de Autenticação (Login/Cadastro) */
+/* =================================== */
+
+#auth-container {
+    /* Dimensões e posicionamento */
+    max-width: 450px; /* Largura um pouco maior */
+    margin: 80px auto; /* Centraliza verticalmente e aumenta margem */
+    padding: 35px;
+
+    /* Cores e Sombra */
+    background-color: #ffffff; /* Fundo branco puro */
+    border-radius: 15px; /* Mais arredondado */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Sombra mais suave e profunda */
+    text-align: center;
+    border-top: 5px solid #3498db; /* Linha de destaque azul no topo */
+}
+
+/* Título */
+#auth-container h2 {
+    margin-bottom: 25px;
+    color: #2c3e50; /* Azul escuro, profissional */
+    font-weight: 700; /* Letras mais grossas (bold) */
+    font-size: 2.2em;
+    text-transform: uppercase;
+}
+
+/* Estilização de Formulário */
+#auth-container form {
+    background: none;
+    padding: 0;
+    box-shadow: none;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600; /* Seminegro */
+    color: #444;
+    text-align: left;
+    font-size: 1.1em;
+}
+
+/* Campos de entrada */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%; /* Ocupa a largura total do container */
+    padding: 14px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px; /* Cantos arredondados nos campos */
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus {
+    border-color: #3498db; /* Borda azul ao focar */
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); /* Sombra azul suave ao focar */
+    outline: none;
+}
+
+/* Botão Principal (Entrar/Cadastrar) */
+#auth-container button {
+    width: 100%;
+    margin-top: 15px;
+    background-color: #28a745; /* Verde vibrante */
+    color: white;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-weight: 700; /* Letras mais grossas */
+    font-size: 1.1em;
+    letter-spacing: 0.5px;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+#auth-container button:hover {
+    background-color: #218838;
+    transform: translateY(-2px); /* Efeito sutil ao passar o mouse */
+}
+
+/* Link para mudar entre Login e Cadastro */
+#auth-container .switch-link {
+    margin-top: 20px;
+    font-size: 1em;
+    color: #7f8c8d;
+}
+
+#auth-container .switch-link a {
+    color: #3498db; /* Azul no link */
+    text-decoration: none;
+    font-weight: 600;
+}
+
+#auth-container .switch-link a:hover {
+    text-decoration: underline;
+}
