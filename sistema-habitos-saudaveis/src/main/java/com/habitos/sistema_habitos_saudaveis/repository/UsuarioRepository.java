@@ -1,5 +1,7 @@
 package com.habitos.sistema_habitos_saudaveis.repository;
 
+import java.util.stream.Collectors;
+import com.habitos.sistema_habitos_saudaveis.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.habitos.sistema_habitos_saudaveis.model.Usuario;
@@ -57,7 +59,7 @@ public class UsuarioRepository {
         return usuario;
     }
 
-    // Método auxiliar para o UsuarioService (ex: buscarPorId)
+    // Método auxiliar para o UsuarioService
     public Optional<Usuario> findById(Long id) {
         return readAll().stream()
                 .filter(u -> u.getId().equals(id))
@@ -65,5 +67,36 @@ public class UsuarioRepository {
     }
 
     public void deleteById(Long id) {
+        List<Usuario> usuarios = readAll();
+
+        //Filtra a lista mantendo todos os usuários exceto aquele com o ID fornecido
+        List<Usuario> usuariosAtualizados = usuarios.stream()
+                .filter(u -> !u.getId().equals(id))
+                .collect(Collectors.toList());
+
+        //Salva a nova lista sem o usuário removido de volta no arquivo
+        writeAll(usuariosAtualizados);
+    }
+
+    //Método para o update
+    public Usuario update(Usuario usuarioAtualizado) {
+        List<Usuario> usuarios = readAll();
+        //Encontra o índice (posição) do usuário a ser atualizado
+        int index = -1;
+        for (int i = 0; i < usuarios.size(); i++) {
+            if (usuarios.get(i).getId() != null && usuarios.get(i).getId().equals(usuarioAtualizado.getId())) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index != -1) {
+            //Substitui o usuário antigo pelo novo na lista
+            usuarios.set(index, usuarioAtualizado);
+            writeAll(usuarios);
+            return usuarioAtualizado;
+        }
+        //Se não encontrou mostra uma exceção
+        throw new ResourceNotFoundException("Usuário não encontrado para atualização.");
     }
 }

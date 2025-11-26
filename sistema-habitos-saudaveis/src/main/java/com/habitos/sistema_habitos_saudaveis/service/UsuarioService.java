@@ -49,8 +49,10 @@ public class UsuarioService {
         // O método 'deleteById' no Service já está correto, o do Repositório lida com o JSON
 
         // Para fins de compilação, vamos apenas retornar os detalhes (o repositório precisaria de lógica de update)
-        return detalhesUsuario;
+        return usuarioRepository.update(detalhesUsuario);
     }
+
+
 
     // 5. DELETE
     public void deletarUsuario(Long id) {
