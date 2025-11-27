@@ -4,55 +4,55 @@
 
 ## 🎯 Objetivo do Projeto
 
-Este projeto consiste no desenvolvimento de uma **API RESTful** para monitorar e gerenciar hábitos saudáveis.
+Este projeto consiste no desenvolvimento de um sistema para monitoramento de hábitos saudáveis.
 
-A aplicação foi desenvolvida em **Java** e utiliza o framework **Spring Boot** para construir uma arquitetura robusta baseada em Programação Orientada a Objetos (POO), seguindo os padrões de Controller, Service e Repository.
+**Backend (API RESTful):** Desenvolvido em Java com Spring Boot, seguindo arquitetura em camadas (Controller, Service, Repository) e POO.
+
+**Frontend (Interface Web):** Interface responsiva desenvolvida com HTML5, CSS3 e JavaScript, consumindo a API via `fetch`.
 
 ---
 
 ## Funcionalidades
+### 1. Autenticação de Usuários
+* Validação de e-mail e senha diretamente no Backend.
+* Criação de conta com dados pessoais (nome, idade, peso, altura) e credenciais.
 
-A API gerencia três entidades principais e uma lógica de negócio:
+### 2. Gestão de Hábitos (`/habitos`)
+* Criar novos hábitos (ex: "Beber água", "Correr").
+* Listar hábitos (exibe apenas os hábitos do usuário logado).
+* Excluir hábitos.
 
-### 1. Usuários (`/usuarios`)
-* `POST /usuarios`: Cria um novo usuário.
-* `GET /usuarios`: Lista todos os usuários.
-* `GET /usuarios/{id}`: Busca um usuário por ID.
-* `PUT /usuarios/{id}`: Atualiza um usuário.
-* `DELETE /usuarios/{id}`: Deleta um usuário.
-* `GET /usuarios/{id}/imc`: Calcula o IMC (Índice de Massa Corporal) do usuário.
+### 3. Diário e Registros (`/registros`)
+* Registar a execução de um hábito numa data específica.
+* Histórico de atividades.
 
-### 2. Hábitos (`/habitos`)
-* `POST /habitos`: Cria um novo hábito.
-* `GET /habitos`: Lista todos os hábitos.
-* `GET /habitos/{id}`: Busca um hábito por ID.
-* `PUT /habitos/{id}`: Atualiza um hábito.
-* `DELETE /habitos/{id}`: Deleta um hábito.
-
-### 3. Registros Diários (`/registros`)
-* `POST /registros`: Cria um novo registro de hábito.
-* `GET /registros/{id}`: Busca um registro por ID.
-* `GET /registros?usuarioId={id}&dataInicio={data}&dataFim={data}`: Busca registros por período e usuário.
-* `PUT /registros/{id}`: Atualiza um registro.
-* `DELETE /registros/{id}`: Deleta um registro.
-
-### 4. Evolução (`/evolucao`)
-* `GET /evolucao?usuarioId={id}&dataInicio={data}&dataFim={data}`: Gera um relatório de progresso do usuário em um período.
-* `GET /evolucao/demo`: Gera um relatório de demonstração dos últimos 7 dias para o usuário ID 1.
+### 4. Relatórios de Evolução (`/evolucao`)
+O sistema calcula o progresso do usuário com base nos registos:
+* Endpoint `/evolucao/demo` que gera um relatório automático dos últimos 7 dias.
+* Cálculo dinâmico por período.
 
 ---
 
+## Estrutura da API (Endpoints)
+
+| Método | Endpoint | Descrição |
+| :--- | :--- | :--- |
+| **POST** | `/usuarios` | Cadastra um novo usuário com cálculo automático de IMC futuro. |
+| **GET** | `/usuarios` | Lista usuários para validação de login. |
+| **GET** | `/habitos` | Lista todos os hábitos (filtrados no front pelo ID do usuário). |
+| **POST** | `/habitos` | Cria um hábito vinculado a um usuário. |
+| **DELETE** | `/habitos/{id}` | Remove um hábito. |
+| **GET** | `/evolucao` | `?usuarioId=1&dataInicio=...&dataFim=...` (Gera métricas). |
+
 ## Tecnologias utilizadas
 
-| Categoria | Requisito | Aplicação |
-| :--- | :--- | :--- |
-| **Framework** | Spring Boot | Utilizado como o principal framework para desenvolvimento da API REST. |
-| **Programação** | POO (Java) | Implementação completa de Classes, Objetos, **Encapsulamento**, **Herança**, e **Polimorfismo**. |
-| **Arquitetura** | APIs RESTful | Todos os CRUDs implementados como endpoints REST (GET, POST, PUT, DELETE). |
-| **Spring Core** | Injeção de Dependência (DI) | Uso de DI com anotações Spring essenciais: `@RestController`, `@Service`, `@Repository`. |
-| **Persistência** | Dados Temporários | Gerenciamento de coleções de dados com **ArrayList** na camada de Serviço. |
-| **Persistência** | Armazenamento | Dados persistidos e transferidos no formato **JSON**. |
-
+| Camada | Tecnologia            | Detalhes |
+| :--- |:----------------------| :--- |
+| **Backend** | Java 21 + Spring Boot | API REST, Injeção de Dependência, Spring Data JPA. |
+| **Banco de Dados** | H2 Database           | Banco em memória/arquivo para persistência ágil. |
+| **Frontend** | JavaScript            | Lógica de consumo de API (Fetch), manipulação de DOM e `localStorage`. |
+| **Frontend** | HTML5 & CSS3          | Estrutura semântica e estilização responsiva. |
+| **Documentação** | Swagger (OpenAPI)     | Documentação automática dos endpoints. |
 ---
 
 ## 💻 Como Executar o Projeto

@@ -1,0 +1,3 @@
+2025-11-27 03:12:07.414596-03:00 jdbc[15]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "SELECT *[*]HABITO"; SQL statement:
+SELECT *HABITO [42000-232]

@@ -27,17 +27,14 @@ public class UsuarioService {
     }
 
     public Usuario atualizarUsuario(Long id, Usuario detalhesUsuario) {
-        // Busca o usuário do banco, se não achar dá erro
         Usuario usuarioExistente = buscarPorId(id);
 
-        // Atualiza os dados do objeto recuperado
         usuarioExistente.setNome(detalhesUsuario.getNome());
         usuarioExistente.setEmail(detalhesUsuario.getEmail());
         usuarioExistente.setIdade(detalhesUsuario.getIdade());
         usuarioExistente.setPeso(detalhesUsuario.getPeso());
         usuarioExistente.setAltura(detalhesUsuario.getAltura());
 
-        // Salva novamente
         return usuarioRepository.save(usuarioExistente);
     }
 
@@ -48,7 +45,6 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    // IMC
     public double calcularIMC(Long usuarioId) {
         Usuario usuario = buscarPorId(usuarioId);
 
@@ -56,5 +52,19 @@ public class UsuarioService {
             throw new IllegalArgumentException("Peso e Altura devem ser valores positivos.");
         }
         return usuario.getPeso() / (usuario.getAltura() * usuario.getAltura());
+    }
+
+    // Autenticação
+    public Usuario autenticar(String email, String senhaRecebida) {
+        // Busca no banco pelo email
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Email não encontrado."));
+
+        // Verifica se a senha do banco é igual à senha recebida
+        if (usuario.getSenha() == null || !usuario.getSenha().equals(senhaRecebida)) {
+            throw new RuntimeException("Senha incorreta!");
+        }
+
+        return usuario;
     }
 }
