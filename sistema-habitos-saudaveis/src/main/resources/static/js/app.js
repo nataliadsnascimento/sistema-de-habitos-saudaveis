@@ -8,14 +8,13 @@ const appContent = document.getElementById('app-content');
 const sidebarContent = document.getElementById('sidebar');
 
 // ===================================
-// 1. SIMULAÇÃO DE API (GET, POST, DELETE)
+// 1. INTEGRAÇÃO COM A API
 // ===================================
-// Funções para interagir com o Spring Boot (e simular login)
 const api = {
     habitos: {
         getAll: async () => {
             const response = await fetch(`${API_BASE_URL}/habitos`);
-            if (!response.ok) throw new Error('Erro ao buscar hábitos. O servidor Spring Boot está rodando?');
+            if (!response.ok) throw new Error('Erro ao buscar hábitos.');
             return response.json();
         },
         create: async (habito) => {
@@ -24,7 +23,7 @@ const api = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(habito)
             });
-            if (!response.ok) throw new Error('Erro ao criar hábito');
+            if (!response.ok) throw new Error('Erro ao criar hábito.');
             return response.json();
         },
         delete: async (id) => {
@@ -35,31 +34,32 @@ const api = {
             return true;
         }
     },
-    // Simulação de Login/Cadastro (o backend precisa implementar endpoints reais)
     usuarios: {
+        // LOGIN
         login: async (credentials) => {
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    // Credenciais de teste:
-                    if (credentials.email === "teste@email.com" && credentials.password === "123") {
-                        resolve({ id: 1, nome: 'Usuário Teste' });
-                    } else {
-                        reject(new Error('Credenciais inválidas.'));
-                    }
-                }, 300);
-            });
+            const response = await fetch(`${API_BASE_URL}/usuarios`);
+            if (!response.ok) throw new Error('Erro ao conectar ao servidor.');
+
+            const listaUsuarios = await response.json();
+            const usuarioEncontrado = listaUsuarios.find(u => u.email === credentials.email);
+
+            if (usuarioEncontrado) {
+                // Retorna o usuário REAL do banco (com ID gerado pelo H2)
+                return usuarioEncontrado;
+            } else {
+                throw new Error('Usuário não encontrado. Verifique o email ou cadastre-se.');
+            }
         },
-        register: async (usuario) => {
-             return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    if (usuario.nome && usuario.email && usuario.password) {
-                        // Simulação de sucesso
-                        resolve({ id: Math.floor(Math.random() * 100) + 2, nome: usuario.nome });
-                    } else {
-                        reject(new Error('Dados incompletos.'));
-                    }
-                }, 300);
+        // CADASTRO: Envia os dados completos digitados pelo usuário para o Java salvar
+        register: async (usuarioCompleto) => {
+            const response = await fetch(`${API_BASE_URL}/usuarios`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(usuarioCompleto)
             });
+
+            if (!response.ok) throw new Error('Erro ao cadastrar usuário no banco.');
+            return response.json();
         }
     }
 };
@@ -107,12 +107,10 @@ const navigateTo = async (path) => {
     }
 };
 
-// Escuta mudanças na hash da URL para navegar
 window.addEventListener('hashchange', () => {
     navigateTo(window.location.hash.substring(1));
 });
 
-// Navegação inicial (executado quando a página carrega)
 window.addEventListener('load', () => {
     if (window.location.hash === '') {
         window.location.hash = '/login';
@@ -125,7 +123,7 @@ window.addEventListener('load', () => {
 // 3. COMPONENTE: SIDEBAR
 // ===================================
 const renderSidebar = () => {
-    const userName = localStorage.getItem('userName') || 'Convidado';
+    const userName = localStorage.getItem('userName') || 'Usuário';
     sidebarContent.innerHTML = `
         <h3>Bem-vindo, ${userName}!</h3>
         <nav>
@@ -138,9 +136,8 @@ const renderSidebar = () => {
     `;
 };
 
-
 // ===================================
-// 4. COMPONENTE: AUTENTICAÇÃO
+// 4. COMPONENTE: AUTENTICAÇÃO (LOGIN E CADASTRO)
 // ===================================
 const authContainerHTML = `
     <div id="auth-container">
@@ -154,7 +151,7 @@ const authContainerHTML = `
     </div>
 `;
 
-// Função Auxiliar para Criar Label
+// Função auxiliar para criar labels
 const createLabel = (htmlFor, text) => {
     const label = document.createElement('label');
     label.htmlFor = htmlFor;
@@ -162,6 +159,7 @@ const createLabel = (htmlFor, text) => {
     return label;
 };
 
+// TELA DE LOGIN
 const renderLogin = () => {
     appContent.innerHTML = authContainerHTML;
     document.getElementById('auth-title').textContent = 'LOGIN';
@@ -171,12 +169,10 @@ const renderLogin = () => {
     const form = document.getElementById('auth-form');
     const emailInput = document.getElementById('auth-email');
     const passwordInput = document.getElementById('auth-password');
-    const authButton = document.getElementById('auth-button');
 
-    // Adiciona Labels para o Login:
+    // Adiciona Labels
     form.insertBefore(createLabel('auth-email', 'Email:'), emailInput);
     form.insertBefore(createLabel('auth-password', 'Senha:'), passwordInput);
-
 
     form.onsubmit = async (event) => {
         event.preventDefault();
@@ -185,16 +181,20 @@ const renderLogin = () => {
 
         try {
             const user = await api.usuarios.login({ email, password });
+
+            // Salva o ID real e o nome no navegador
             localStorage.setItem('userId', user.id);
             localStorage.setItem('userName', user.nome);
-            alert(`Bem-vindo, ${user.nome}!`);
+
+            alert(`Bem-vindo de volta, ${user.nome}!`);
             navigateTo('/habitos');
         } catch (error) {
-            alert('Login falhou: ' + error.message);
+            alert('Falha no login: ' + error.message);
         }
     };
 };
 
+// TELA DE CADASTRO
 const renderRegister = () => {
     appContent.innerHTML = authContainerHTML;
     document.getElementById('auth-title').textContent = 'CADASTRO';
@@ -203,41 +203,80 @@ const renderRegister = () => {
 
     const form = document.getElementById('auth-form');
     const emailInput = document.getElementById('auth-email');
+    const passwordInput = document.getElementById('auth-password');
 
-    // CRIA E INSERE O CAMPO DE NOME (input)
+    // CRIAÇÃO DOS CAMPOS (Nome, Idade, Peso, Altura)
+
+    // Campo Nome
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.id = 'auth-name';
-    nameInput.name = 'name';
     nameInput.required = true;
 
-    // CRIA E INSERE O LABEL DO NOME antes dos campos de Email/Senha
+    // Campo Idade
+    const idadeInput = document.createElement('input');
+    idadeInput.type = 'number';
+    idadeInput.id = 'auth-idade';
+    idadeInput.required = true;
+
+    // Campo Peso
+    const pesoInput = document.createElement('input');
+    pesoInput.type = 'number';
+    pesoInput.id = 'auth-peso';
+    pesoInput.step = '0.1'; // Permite decimais
+    pesoInput.required = true;
+
+    // Campo Altura
+    const alturaInput = document.createElement('input');
+    alturaInput.type = 'number';
+    alturaInput.id = 'auth-altura';
+    alturaInput.step = '0.01';
+    alturaInput.required = true;
+
+    // INSERÇÃO NO DOM (ORDEM: Nome, Idade, Peso, Altura, Email, Senha)
+
+    // Inserindo Nome
     form.insertBefore(createLabel('auth-name', 'Nome:'), emailInput);
     form.insertBefore(nameInput, emailInput);
 
-    // CRIA E INSERE O LABEL DO EMAIL e SENHA (que são removidos ao recriar o authContainerHTML)
-    const passwordInput = document.getElementById('auth-password');
+    // Inserindo Idade
+    form.insertBefore(createLabel('auth-idade', 'Idade:'), emailInput);
+    form.insertBefore(idadeInput, emailInput);
+
+    // Inserindo Peso
+    form.insertBefore(createLabel('auth-peso', 'Peso (kg):'), emailInput);
+    form.insertBefore(pesoInput, emailInput);
+
+    // Inserindo Altura
+    form.insertBefore(createLabel('auth-altura', 'Altura (m):'), emailInput);
+    form.insertBefore(alturaInput, emailInput);
+
+    // Labels para Email e Senha
     form.insertBefore(createLabel('auth-email', 'Email:'), emailInput);
     form.insertBefore(createLabel('auth-password', 'Senha:'), passwordInput);
 
-    // Ajusta a ordem dos inputs (o input de email e password já existem, só precisam dos labels)
-
     form.onsubmit = async (event) => {
         event.preventDefault();
-        const name = document.getElementById('auth-name').value;
-        const email = document.getElementById('auth-email').value;
-        const password = document.getElementById('auth-password').value;
+
+        // Coleta todos os dados digitados
+        const novoUsuario = {
+            nome: nameInput.value,
+            idade: parseInt(idadeInput.value),
+            peso: parseFloat(pesoInput.value),
+            altura: parseFloat(alturaInput.value),
+            email: emailInput.value,
+            password: passwordInput.value,
+        };
 
         try {
-            await api.usuarios.register({ nome: name, email, password });
-            alert('Cadastro realizado com sucesso! Faça login.');
+            await api.usuarios.register(novoUsuario);
+            alert('Cadastro realizado com sucesso! Agora faça login.');
             navigateTo('/login');
         } catch (error) {
-            alert('Falha no cadastro: ' + error.message);
+            alert('Falha ao cadastrar: ' + error.message);
         }
     };
 };
-
 
 // ===================================
 // 5. COMPONENTE: HÁBITOS
@@ -249,10 +288,13 @@ const renderHabitosPage = async () => {
             <h3>Adicionar Novo Hábito</h3>
             <label for="habito-nome">Nome do Hábito:</label>
             <input type="text" id="habito-nome" name="nome" required><br>
+            
             <label for="habito-tipo">Tipo (Saúde, Estudo, etc.):</label>
             <input type="text" id="habito-tipo" name="tipo" required><br>
+            
             <label for="habito-descricao">Descrição:</label>
             <input type="text" id="habito-descricao" name="descricao" required><br>
+            
             <button type="submit">SALVAR HÁBITO</button>
         </form>
         <hr>
@@ -270,13 +312,17 @@ const renderHabitosPage = async () => {
             const habitos = await api.habitos.getAll();
             habitosListaContainer.innerHTML = '';
 
-            if (habitos.length === 0) {
-                habitosListaContainer.innerHTML = '<p>Nenhum hábito encontrado. Adicione um acima!</p>';
+            // Filtra os hábitos para mostrar apenas os do usuário logado
+            const userId = parseInt(localStorage.getItem('userId'));
+            const meusHabitos = habitos.filter(h => h.usuario && h.usuario.id === userId);
+
+            if (meusHabitos.length === 0) {
+                habitosListaContainer.innerHTML = '<p>Você ainda não tem hábitos cadastrados.</p>';
                 return;
             }
 
             const ul = document.createElement('ul');
-            habitos.forEach(habito => {
+            meusHabitos.forEach(habito => {
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <span><strong>${habito.nome}</strong> (${habito.tipo}) - ${habito.descricao}</span>
@@ -286,22 +332,23 @@ const renderHabitosPage = async () => {
             });
             habitosListaContainer.appendChild(ul);
 
+            // eventos de exclusão
             ul.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', async (event) => {
                     const habitoId = event.target.dataset.id;
-                    if (confirm(`Tem certeza que deseja excluir o hábito ID ${habitoId}?`)) {
+                    if (confirm('Tem certeza que deseja excluir este hábito?')) {
                         try {
                             await api.habitos.delete(habitoId);
                             loadHabitos();
                         } catch (error) {
-                            alert('Erro ao excluir hábito: ' + error.message);
+                            alert('Erro ao excluir: ' + error.message);
                         }
                     }
                 });
             });
 
         } catch (error) {
-            habitosListaContainer.innerHTML = `<p style="color: red;">Erro ao carregar hábitos. Verifique se o Spring Boot está rodando em 8080.</p>`;
+            habitosListaContainer.innerHTML = `<p style="color: red;">Erro ao carregar hábitos. O servidor está rodando?</p>`;
         }
     };
 
@@ -310,7 +357,7 @@ const renderHabitosPage = async () => {
         const userId = localStorage.getItem('userId');
 
         if (!userId) {
-            alert('Faça login para adicionar hábitos.');
+            alert('Sessão expirada. Faça login novamente.');
             navigateTo('/login');
             return;
         }
@@ -319,6 +366,7 @@ const renderHabitosPage = async () => {
             nome: document.getElementById('habito-nome').value,
             tipo: document.getElementById('habito-tipo').value,
             descricao: document.getElementById('habito-descricao').value,
+            // Vincula o hábito ao ID real do usuário
             usuario: { id: parseInt(userId) }
         };
 
