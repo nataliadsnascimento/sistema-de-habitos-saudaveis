@@ -1,0 +1,50 @@
+/* css/evolucao.css */
+
+/* 1. Animação de entrada suave (Fade In) */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px); /* Começa um pouco mais baixo */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 2. Estilos específicos do Card de Evolução */
+.card-evolucao {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+}
+
+/* 3. Responsividade: Ajustes para celular */
+@media (max-width: 768px) {
+    /* No celular, coloca os campos de data um embaixo do outro */
+    #form-evolucao {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    #form-evolucao div {
+        width: 100%;
+    }
+
+    #form-evolucao input {
+        width: 100%;
+    }
+
+    #form-evolucao button {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    /* Ajusta os números grandes para caberem na tela */
+    .card-evolucao div[style*="display: flex"] {
+        flex-direction: column;
+        gap: 15px;
+    }
+}

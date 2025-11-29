@@ -65,6 +65,22 @@ const api = {
 
             if (!response.ok) throw new Error('Erro ao cadastrar usuário no banco.');
             return response.json();
+        },
+
+        // [NOVO] Busca o IMC calculado pelo Backend
+        getIMC: async (id) => {
+            const response = await fetch(`${API_BASE_URL}/usuarios/${id}/imc`);
+            if (!response.ok) throw new Error('Erro ao buscar IMC.');
+            return response.json();
+        }
+    },
+    // [NOVO] Adicionamos o objeto para lidar com a Evolução
+    evolucao: {
+        get: async (usuarioId, dataInicio, dataFim) => {
+            const url = `${API_BASE_URL}/evolucao?usuarioId=${usuarioId}&dataInicio=${dataInicio}&dataFim=${dataFim}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Erro ao gerar relatório.');
+            return response.json();
         }
     }
 };
@@ -82,7 +98,8 @@ const navigateTo = async (path) => {
     }
 
     if (isAuthenticated) {
-        renderSidebar();
+        // [MODIFICADO] Adicionado await para garantir que o IMC carregue antes de mostrar
+        await renderSidebar();
     } else {
         sidebarContent.innerHTML = '';
     }
@@ -91,8 +108,9 @@ const navigateTo = async (path) => {
         case '/login': renderLogin(); break;
         case '/register': renderRegister(); break;
         case '/habitos': await renderHabitosPage(); break;
+        // [MODIFICADO] Chama a nova função de renderização da página de evolução
         case '/evolucao':
-            appContent.innerHTML = '<h2>Evolução</h2><p>Gráficos de progresso virão aqui.</p>';
+            renderEvolucaoPage();
             break;
         case '/logout':
             localStorage.removeItem('userId');
@@ -112,12 +130,55 @@ window.addEventListener('load', () => {
 });
 
 // ===================================
-// 3. COMPONENTE: SIDEBAR
+// 3. COMPONENTE: SIDEBAR (COM IMC)
 // ===================================
-const renderSidebar = () => {
+const renderSidebar = async () => {
+    const userId = localStorage.getItem('userId');
     const userName = localStorage.getItem('userName') || 'Usuário';
+
+    // Elemento base da sidebar
+    let imcHtml = '<p><small>Carregando IMC...</small></p>';
+
+    try {
+        if (userId) {
+            // Busca o IMC no backend
+            const imcValor = await api.usuarios.getIMC(userId);
+            const imcFormatado = imcValor.toFixed(1); // Ex: 24.5
+
+            // Lógica simples de classificação (apenas visual)
+            let classificacao = '';
+            let corClassificacao = '#ecf0f1'; // Cor padrão
+
+            if (imcValor < 18.5) {
+                classificacao = '(Abaixo do peso)';
+                corClassificacao = '#f1c40f'; // Amarelo
+            } else if (imcValor < 25) {
+                classificacao = '(Peso normal)';
+                corClassificacao = '#2ecc71'; // Verde
+            } else if (imcValor < 30) {
+                classificacao = '(Sobrepeso)';
+                corClassificacao = '#e67e22'; // Laranja
+            } else {
+                classificacao = '(Obesidade)';
+                corClassificacao = '#e74c3c'; // Vermelho
+            }
+
+            imcHtml = `
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
+                    <small style="text-transform: uppercase; letter-spacing: 1px; font-size: 0.7em; opacity: 0.8;">Seu IMC</small><br>
+                    <strong style="font-size: 1.8em; color: ${corClassificacao}; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">${imcFormatado}</strong>
+                    <br><small style="font-size: 0.85em; opacity: 0.9;">${classificacao}</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error(error);
+        imcHtml = '<div style="margin-bottom: 15px;"><small>Erro ao carregar IMC</small></div>';
+    }
+
     sidebarContent.innerHTML = `
         <h3>Olá, ${userName}!</h3>
+        ${imcHtml}
         <nav>
             <ul>
                 <li><a href="#/habitos">Meus Hábitos</a></li>
@@ -320,4 +381,86 @@ const renderHabitosPage = async () => {
     });
 
     loadHabitos();
+};
+
+// ===================================
+// 6. COMPONENTE: PÁGINA DE EVOLUÇÃO (NOVO)
+// ===================================
+const renderEvolucaoPage = () => {
+    // Define datas padrão (últimos 7 dias)
+    const hoje = new Date().toISOString().split('T')[0];
+    const seteDiasAtras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    appContent.innerHTML = `
+        <h2>📊 Sua Evolução</h2>
+        <p>Selecione um período para ver seu desempenho.</p>
+
+        <form id="form-evolucao" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <div>
+                <label for="data-inicio">Data Início:</label>
+                <input type="date" id="data-inicio" value="${seteDiasAtras}" required style="margin-bottom: 0;">
+            </div>
+            <div>
+                <label for="data-fim">Data Fim:</label>
+                <input type="date" id="data-fim" value="${hoje}" required style="margin-bottom: 0;">
+            </div>
+            <button type="submit" style="height: 42px;">Gerar Análise</button>
+        </form>
+
+        <hr style="margin: 30px 0; border-top: 1px solid #eee;">
+
+        <div id="resultado-evolucao" style="display: none; animation: fadeIn 0.5s;">
+            </div>
+    `;
+
+    const form = document.getElementById('form-evolucao');
+    const resultadoDiv = document.getElementById('resultado-evolucao');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inicio = document.getElementById('data-inicio').value;
+        const fim = document.getElementById('data-fim').value;
+        const userId = localStorage.getItem('userId');
+
+        resultadoDiv.innerHTML = '<p>Calculando...</p>';
+        resultadoDiv.style.display = 'block';
+
+        try {
+            // 1. Chama o Backend
+            const dados = await api.evolucao.get(userId, inicio, fim);
+
+            // 2. Renderiza o Resultado
+            resultadoDiv.innerHTML = `
+                <div class="card-evolucao" style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <h3 style="color: #2c3e50; margin-top: 0;">${dados.meta}</h3>
+                    
+                    <div style="display: flex; justify-content: space-around; margin-top: 30px; text-align: center; flex-wrap: wrap; gap: 20px;">
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; min-width: 150px;">
+                            <span style="font-size: 2.5em; color: #3498db; font-weight: bold; display: block;">${dados.totalRegistros}</span>
+                            <small style="color: #7f8c8d; text-transform: uppercase; font-weight: bold;">Hábitos Realizados</small>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; min-width: 150px;">
+                            <span style="font-size: 2.5em; color: #27ae60; font-weight: bold; display: block;">${dados.progresso}</span>
+                            <small style="color: #7f8c8d; text-transform: uppercase; font-weight: bold;">Média Diária</small>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #555;">Consistência (Baseado na média diária)</label>
+                        <div style="background: #e0e0e0; border-radius: 15px; height: 25px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
+                            <div style="background: linear-gradient(90deg, #f1c40f, #2ecc71); 
+                                        height: 100%; 
+                                        width: ${Math.min(dados.progresso * 100, 100)}%;
+                                        transition: width 1s ease-in-out;">
+                            </div>
+                        </div>
+                        <small style="color: #95a5a6; display: block; margin-top: 5px;">Meta sugerida: pelo menos 1.0 hábito por dia para encher a barra.</small>
+                    </div>
+                </div>
+            `;
+
+        } catch (error) {
+            resultadoDiv.innerHTML = `<p style="color: red; background: #fee; padding: 10px; border-radius: 5px;">Erro: ${error.message}</p>`;
+        }
+    });
 };
