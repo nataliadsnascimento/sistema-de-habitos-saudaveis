@@ -1,21 +1,13 @@
-/* =================================== */
-/* CSS: Lista de Hábitos */
-/* =================================== */
-
-#habitos-lista ul {
-    list-style: none;
-    padding: 0;
-}
-
+/* Alinha o texto do hábito à esquerda e os botões à direita */
 #habitos-lista ul li {
-    background-color: #ecf0f1; /* Cinza claro */
+    background-color: #ecf0f1;
     padding: 15px;
     margin-bottom: 10px;
     border-radius: 6px;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Separa texto dos botões */
     align-items: center;
-    border-left: 5px solid #3498db; /* Destaque azul */
+    border-left: 5px solid #3498db;
     transition: background-color 0.2s;
 }
 
@@ -27,24 +19,46 @@
     flex-grow: 1;
     margin-right: 20px;
     color: #333;
+    font-size: 1.1em;
 }
 
-/* Estilo do botão de exclusão */
-#habitos-lista ul li button {
-    background-color: #e74c3c; /* Vermelho forte */
-    padding: 8px 12px;
-    font-size: 14px;
+/* Container para os botões */
+.habito-actions {
+    display: flex;
+    gap: 10px; /* Espaço entre os botões */
 }
 
-#habitos-lista ul li button:hover {
-    background-color: #c0392b;
+/* Estilo base dos botões */
+.habito-actions button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+    transition: transform 0.1s, opacity 0.2s;
 }
 
-/* Mensagem de nenhum hábito */
-#habitos-lista p {
-    color: #7f8c8d;
-    padding: 10px;
-    border: 1px dashed #bdc3c7;
-    border-radius: 5px;
-    text-align: center;
+.habito-actions button:active {
+    transform: scale(0.95); /* Efeito de clique */
+}
+
+/* Botão FEITO (Verde) */
+.btn-concluir {
+    background-color: #27ae60; /* Verde */
+}
+
+.btn-concluir:hover {
+    background-color: #219150; /* Verde mais escuro */
+    box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+}
+
+/* Botão EXCLUIR (Vermelho) */
+.btn-excluir {
+    background-color: #e74c3c; /* Vermelho */
+}
+
+.btn-excluir:hover {
+    background-color: #c0392b; /* Vermelho mais escuro */
+    box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
 }

@@ -15,7 +15,6 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    // Classe para receber os dados do JSON de login
     public static class LoginRequest {
         public String email;
         public String senha;

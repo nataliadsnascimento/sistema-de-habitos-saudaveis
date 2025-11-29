@@ -10,4 +10,6 @@ import java.util.List;
 public interface RegistroRepository extends JpaRepository<RegistroDiario, Long> {
 
     List<RegistroDiario> findByUsuarioIdAndDataBetween(Long usuarioId, LocalDate dataInicio, LocalDate dataFim);
+
+    void deleteByHabitoId(Long habitoId);
 }
