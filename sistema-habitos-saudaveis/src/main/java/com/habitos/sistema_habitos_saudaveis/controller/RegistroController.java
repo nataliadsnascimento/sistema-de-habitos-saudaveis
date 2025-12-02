@@ -23,7 +23,6 @@ public class RegistroController {
     }
 
     // 2. READ: GET /registros?usuarioId={id}&dataInicio={data}&dataFim={data}
-    // Este endpoint usa a lógica que seu relatório de evolução usará no futuro!
     @GetMapping
     public ResponseEntity<List<RegistroDiario>> buscarRegistros(
             @RequestParam Long usuarioId,
