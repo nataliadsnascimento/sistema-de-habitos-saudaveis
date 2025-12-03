@@ -1,5 +1,6 @@
-/* Alinha o texto do hábito à esquerda e os botões à direita */
-#habitos-lista ul li {
+/* Alinha o texto do hábito/dieta à esquerda e os botões à direita */
+#habitos-lista ul li,
+#dietas-lista ul li {
     background-color: #ecf0f1;
     padding: 15px;
     margin-bottom: 10px;
@@ -7,15 +8,22 @@
     display: flex;
     justify-content: space-between; /* Separa texto dos botões */
     align-items: center;
-    border-left: 5px solid #3498db;
+    border-left: 5px solid #3498db; /* Padrão (azul) para hábitos */
     transition: background-color 0.2s;
 }
 
-#habitos-lista ul li:hover {
+/* Diferencia visualmente as dietas com uma cor laranja */
+#dietas-lista ul li {
+    border-left: 5px solid #e67e22;
+}
+
+#habitos-lista ul li:hover,
+#dietas-lista ul li:hover {
     background-color: #dfe6e9;
 }
 
-#habitos-lista ul li span {
+#habitos-lista ul li span,
+#dietas-lista ul li span {
     flex-grow: 1;
     margin-right: 20px;
     color: #333;
@@ -51,6 +59,16 @@
 .btn-concluir:hover {
     background-color: #219150; /* Verde mais escuro */
     box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+}
+
+/* NOVO: Botão EDITAR (Laranja/Amarelo) */
+.btn-editar {
+    background-color: #f39c12; /* Laranja */
+}
+
+.btn-editar:hover {
+    background-color: #d35400; /* Laranja escuro */
+    box-shadow: 0 2px 5px rgba(243, 156, 18, 0.3);
 }
 
 /* Botão EXCLUIR (Vermelho) */

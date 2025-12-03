@@ -29,6 +29,39 @@ const api = {
             return true;
         }
     },
+    // CRUD DE DIETAS
+    dietas: {
+        getAll: async () => {
+            const response = await fetch(`${API_BASE_URL}/dietas`);
+            if (!response.ok) throw new Error('Erro ao buscar dietas.');
+            return response.json();
+        },
+        create: async (dieta) => {
+            const response = await fetch(`${API_BASE_URL}/dietas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dieta)
+            });
+            if (!response.ok) throw new Error('Erro ao criar dieta.');
+            return response.json();
+        },
+        update: async (id, dieta) => {
+            const response = await fetch(`${API_BASE_URL}/dietas/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dieta)
+            });
+            if (!response.ok) throw new Error('Erro ao atualizar dieta.');
+            return response.json();
+        },
+        delete: async (id) => {
+            const response = await fetch(`${API_BASE_URL}/dietas/${id}`, {
+                method: 'DELETE'
+            });
+            if (response.status !== 204) throw new Error('Erro ao deletar dieta');
+            return true;
+        }
+    },
     usuarios: {
         login: async (credentials) => {
             const response = await fetch(`${API_BASE_URL}/usuarios/login`, {
@@ -47,7 +80,6 @@ const api = {
                 throw new Error('Erro ao conectar ao servidor.');
             }
 
-            // Retorna o usuário logado vindo do Java
             return response.json();
         },
 
@@ -62,21 +94,18 @@ const api = {
             return response.json();
         },
 
-        // Busca o IMC calculado pelo Backend
         getIMC: async (id) => {
             const response = await fetch(`${API_BASE_URL}/usuarios/${id}/imc`);
             if (!response.ok) throw new Error('Erro ao buscar IMC.');
             return response.json();
         },
 
-        // Busca dados completos do usuário pelo ID (Para a tela de Perfil)
         getById: async (id) => {
             const response = await fetch(`${API_BASE_URL}/usuarios/${id}`);
             if (!response.ok) throw new Error('Erro ao buscar dados do usuário.');
             return response.json();
         },
 
-        // Atualiza os dados do usuário (PUT)
         update: async (id, dadosAtualizados) => {
             const response = await fetch(`${API_BASE_URL}/usuarios/${id}`, {
                 method: 'PUT',
@@ -87,7 +116,6 @@ const api = {
             return response.json();
         }
     },
-    // Objeto para registrar conclusões de hábitos
     registros: {
         create: async (registro) => {
             const response = await fetch(`${API_BASE_URL}/registros`, {
@@ -120,7 +148,6 @@ const navigateTo = async (path) => {
     }
 
     if (isAuthenticated) {
-        // Renderiza Sidebar (que carrega o IMC atualizado)
         await renderSidebar();
     } else {
         sidebarContent.innerHTML = '';
@@ -130,8 +157,9 @@ const navigateTo = async (path) => {
         case '/login': renderLogin(); break;
         case '/register': renderRegister(); break;
         case '/habitos': await renderHabitosPage(); break;
+        case '/dietas': await renderDietasPage(); break;
         case '/evolucao': renderEvolucaoPage(); break;
-        case '/perfil': await renderPerfilPage(); break; // Rota para editar perfil
+        case '/perfil': await renderPerfilPage(); break;
 
         case '/logout':
             localStorage.removeItem('userId');
@@ -150,37 +178,33 @@ window.addEventListener('load', () => {
     else navigateTo(window.location.hash.substring(1));
 });
 
-// COMPONENTE: SIDEBAR (COM IMC)
-
+// SIDEBAR
 const renderSidebar = async () => {
     const userId = localStorage.getItem('userId');
     const userName = localStorage.getItem('userName') || 'Usuário';
 
-    // Elemento base da sidebar
     let imcHtml = '<p><small>Carregando IMC...</small></p>';
 
     try {
         if (userId) {
-            // Busca o IMC no backend
             const imcValor = await api.usuarios.getIMC(userId);
-            const imcFormatado = imcValor.toFixed(1); // Ex: 24.5
+            const imcFormatado = imcValor.toFixed(1);
 
-            // Lógica simples de classificação (apenas visual)
             let classificacao = '';
-            let corClassificacao = '#ecf0f1'; // Cor padrão
+            let corClassificacao = '#ecf0f1';
 
             if (imcValor < 18.5) {
                 classificacao = '(Abaixo do peso)';
-                corClassificacao = '#f1c40f'; // Amarelo
+                corClassificacao = '#f1c40f';
             } else if (imcValor < 25) {
                 classificacao = '(Peso normal)';
-                corClassificacao = '#2ecc71'; // Verde
+                corClassificacao = '#2ecc71';
             } else if (imcValor < 30) {
                 classificacao = '(Sobrepeso)';
-                corClassificacao = '#e67e22'; // Laranja
+                corClassificacao = '#e67e22';
             } else {
                 classificacao = '(Obesidade)';
-                corClassificacao = '#e74c3c'; // Vermelho
+                corClassificacao = '#e74c3c';
             }
 
             imcHtml = `
@@ -202,6 +226,7 @@ const renderSidebar = async () => {
         <nav>
             <ul>
                 <li><a href="#/habitos">Meus Hábitos</a></li>
+                <li><a href="#/dietas">Minha Dieta</a></li>
                 <li><a href="#/evolucao">Evolução</a></li>
                 <li><a href="#/perfil">Meu Perfil</a></li>
                 <li><a href="#/logout">Sair</a></li>
@@ -210,7 +235,7 @@ const renderSidebar = async () => {
     `;
 };
 
-// COMPONENTE: AUTENTICAÇÃO
+// AUTENTICAÇÃO E CADASTRO
 const authContainerHTML = `
     <div id="auth-container">
         <h2 id="auth-title">Login</h2>
@@ -230,7 +255,6 @@ const createLabel = (htmlFor, text) => {
     return label;
 };
 
-// LOGIN
 const renderLogin = () => {
     appContent.innerHTML = authContainerHTML;
     document.getElementById('auth-title').textContent = 'LOGIN';
@@ -251,10 +275,8 @@ const renderLogin = () => {
 
         try {
             const user = await api.usuarios.login({ email, password });
-
             localStorage.setItem('userId', user.id);
             localStorage.setItem('userName', user.nome);
-
             alert(`Bem-vindo, ${user.nome}!`);
             navigateTo('/habitos');
         } catch (error) {
@@ -263,7 +285,6 @@ const renderLogin = () => {
     };
 };
 
-// TELA DE CADASTRO
 const renderRegister = () => {
     appContent.innerHTML = authContainerHTML;
     document.getElementById('auth-title').textContent = 'CADASTRO';
@@ -276,13 +297,10 @@ const renderRegister = () => {
 
     const nameInput = document.createElement('input');
     nameInput.type = 'text'; nameInput.id = 'auth-name'; nameInput.required = true;
-
     const idadeInput = document.createElement('input');
     idadeInput.type = 'number'; idadeInput.id = 'auth-idade'; idadeInput.required = true;
-
     const pesoInput = document.createElement('input');
     pesoInput.type = 'number'; pesoInput.id = 'auth-peso'; pesoInput.step = '0.1'; pesoInput.required = true;
-
     const alturaInput = document.createElement('input');
     alturaInput.type = 'number'; alturaInput.id = 'auth-altura'; alturaInput.step = '0.01'; alturaInput.required = true;
 
@@ -299,7 +317,6 @@ const renderRegister = () => {
 
     form.onsubmit = async (event) => {
         event.preventDefault();
-
         const novoUsuario = {
             nome: nameInput.value,
             idade: parseInt(idadeInput.value),
@@ -319,9 +336,7 @@ const renderRegister = () => {
     };
 };
 
-
-// COMPONENTE: HÁBITOS (ATUALIZADO COM BOTÕES)
-
+// COMPONENTE: HÁBITOS
 const renderHabitosPage = async () => {
     appContent.innerHTML = `
         <h2>MEUS HÁBITOS</h2>
@@ -329,13 +344,10 @@ const renderHabitosPage = async () => {
             <h3>Adicionar Novo Hábito</h3>
             <label for="habito-nome">Nome do Hábito:</label>
             <input type="text" id="habito-nome" name="nome" placeholder="Ex: Beber água" required><br>
-            
             <label for="habito-tipo">Tipo:</label>
             <input type="text" id="habito-tipo" name="tipo" placeholder="Ex: Saúde" required><br>
-            
             <label for="habito-descricao">Descrição:</label>
             <input type="text" id="habito-descricao" name="descricao" placeholder="Ex: 2 litros por dia" required><br>
-            
             <button type="submit">SALVAR HÁBITO</button>
         </form>
         <hr>
@@ -361,7 +373,6 @@ const renderHabitosPage = async () => {
 
             const ul = document.createElement('ul');
 
-            // Renderiza cada hábito com os botões Feito e Excluir
             meusHabitos.forEach(habito => {
                 const li = document.createElement('li');
                 li.innerHTML = `
@@ -378,13 +389,12 @@ const renderHabitosPage = async () => {
             });
             habitosListaContainer.appendChild(ul);
 
-            // AÇÃO: EXCLUIR
             ul.querySelectorAll('.btn-excluir').forEach(button => {
                 button.addEventListener('click', async (e) => {
                     if (confirm('Excluir este hábito permanentemente?')) {
                         try {
                             await api.habitos.delete(e.target.dataset.id);
-                            loadHabitos(); // Recarrega a lista
+                            loadHabitos();
                         } catch (error) {
                             alert(error.message);
                         }
@@ -392,19 +402,16 @@ const renderHabitosPage = async () => {
                 });
             });
 
-            // AÇÃO: FEITO (REGISTRAR EVOLUÇÃO)
             ul.querySelectorAll('.btn-concluir').forEach(button => {
                 button.addEventListener('click', async (e) => {
                     const habitoId = e.target.dataset.id;
-                    const hoje = new Date().toISOString().split('T')[0]; // Data de hoje (YYYY-MM-DD)
-
+                    const hoje = new Date().toISOString().split('T')[0];
                     const novoRegistro = {
                         data: hoje,
                         observacao: "Concluído via App",
                         usuarioId: userId,
-                        habito: { id: habitoId } // Objeto Habito com ID
+                        habito: { id: habitoId }
                     };
-
                     try {
                         await api.registros.create(novoRegistro);
                         alert('Hábito registrado com sucesso para hoje!');
@@ -420,7 +427,6 @@ const renderHabitosPage = async () => {
         }
     };
 
-    // Criar novo hábito
     formCriarHabito.addEventListener('submit', async (e) => {
         e.preventDefault();
         const userId = localStorage.getItem('userId');
@@ -430,7 +436,6 @@ const renderHabitosPage = async () => {
             descricao: document.getElementById('habito-descricao').value,
             usuario: { id: parseInt(userId) }
         };
-
         try {
             await api.habitos.create(novoHabito);
             formCriarHabito.reset();
@@ -443,16 +448,174 @@ const renderHabitosPage = async () => {
     loadHabitos();
 };
 
+// --- COMPONENTE DE DIETAS ---
+
+const renderDietasPage = async () => {
+    // Variável de controle
+    let editandoId = null;
+
+    appContent.innerHTML = `
+        <h2>MINHA DIETA</h2>
+        <form id="form-criar-dieta">
+            <h3 id="titulo-form-dieta">Adicionar Nova Refeição</h3>
+            
+            <label for="dieta-refeicao">Refeição:</label>
+            <input type="text" id="dieta-refeicao" placeholder="Ex: Café da Manhã" required>
+            
+            <label for="dieta-descricao">O que vou comer?</label>
+            <input type="text" id="dieta-descricao" placeholder="Ex: 2 Ovos e Café sem açúcar" required>
+            
+            <label for="dieta-calorias">Calorias (kcal):</label>
+            <input type="number" id="dieta-calorias" placeholder="Ex: 150" step="0.1" required>
+            
+            <div style="display:flex; gap:10px;">
+                <button type="submit" id="btn-salvar-dieta">SALVAR REFEIÇÃO</button>
+                <button type="button" id="btn-cancelar-edicao" style="display:none; background-color: #95a5a6;">CANCELAR</button>
+            </div>
+        </form>
+        <hr>
+        <div id="dietas-lista">
+            <p>Carregando...</p>
+        </div>
+    `;
+
+    const dietasListaContainer = document.getElementById('dietas-lista');
+    const formCriarDieta = document.getElementById('form-criar-dieta');
+    const btnSalvar = document.getElementById('btn-salvar-dieta');
+    const btnCancelar = document.getElementById('btn-cancelar-edicao');
+    const tituloForm = document.getElementById('titulo-form-dieta');
+
+    // Função para limpar o modo de edição e voltar ao modo de criação
+    const limparModoEdicao = () => {
+        editandoId = null;
+        formCriarDieta.reset();
+        btnSalvar.textContent = 'SALVAR REFEIÇÃO';
+        tituloForm.textContent = 'Adicionar Nova Refeição';
+        btnCancelar.style.display = 'none';
+        // Remove destaque amarelo se houvesse na lista
+    };
+
+    btnCancelar.addEventListener('click', limparModoEdicao);
+
+    const loadDietas = async () => {
+        dietasListaContainer.innerHTML = '<p>Carregando...</p>';
+        try {
+            const dietas = await api.dietas.getAll();
+            dietasListaContainer.innerHTML = '';
+
+            const userId = parseInt(localStorage.getItem('userId'));
+            // Filtra as dietas do usuário
+            const minhasDietas = dietas.filter(d => d.usuario && d.usuario.id === userId);
+
+            if (minhasDietas.length === 0) {
+                dietasListaContainer.innerHTML = '<p>Nenhuma refeição cadastrada.</p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+
+            minhasDietas.forEach(dieta => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>
+                        <strong>${dieta.nomeRefeicao}</strong> <small>(${dieta.calorias} kcal)</small><br>
+                        <small style="color: #666;">${dieta.descricao}</small>
+                    </span>
+                    <div class="habito-actions">
+                        <button class="btn-editar" data-id="${dieta.id}" title="Editar refeição">Editar</button>
+                        <button class="btn-excluir" data-id="${dieta.id}" title="Remover refeição">Excluir</button>
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+            dietasListaContainer.appendChild(ul);
+
+            // AÇÃO: EXCLUIR
+            ul.querySelectorAll('.btn-excluir').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    if (confirm('Remover esta refeição?')) {
+                        try {
+                            await api.dietas.delete(e.target.dataset.id);
+                            // Se estava editando o item excluído, cancela a edição
+                            if (editandoId == e.target.dataset.id) limparModoEdicao();
+                            loadDietas();
+                        } catch (error) {
+                            alert(error.message);
+                        }
+                    }
+                });
+            });
+
+            // AÇÃO: EDITAR
+            ul.querySelectorAll('.btn-editar').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    // Encontra a dieta nos dados que já temos
+                    const dietaParaEditar = minhasDietas.find(d => d.id == id);
+
+                    if (dietaParaEditar) {
+                        editandoId = id;
+                        // Preenche o formulário
+                        document.getElementById('dieta-refeicao').value = dietaParaEditar.nomeRefeicao;
+                        document.getElementById('dieta-descricao').value = dietaParaEditar.descricao;
+                        document.getElementById('dieta-calorias').value = dietaParaEditar.calorias;
+
+                        // Muda visual do formulário
+                        tituloForm.textContent = 'Editando: ' + dietaParaEditar.nomeRefeicao;
+                        btnSalvar.textContent = 'ATUALIZAR REFEIÇÃO';
+                        btnCancelar.style.display = 'inline-block';
+
+                        // Rola a tela até o formulário
+                        formCriarDieta.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
+        } catch (error) {
+            console.error(error);
+            dietasListaContainer.innerHTML = `<p style="color:red">Erro ao carregar dieta.</p>`;
+        }
+    };
+
+    formCriarDieta.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = localStorage.getItem('userId');
+
+        const dadosForm = {
+            nomeRefeicao: document.getElementById('dieta-refeicao').value,
+            descricao: document.getElementById('dieta-descricao').value,
+            calorias: parseFloat(document.getElementById('dieta-calorias').value),
+            usuario: { id: parseInt(userId) }
+        };
+
+        try {
+            if (editandoId) {
+                // MODO EDIÇÃO: Chama update
+                await api.dietas.update(editandoId, dadosForm);
+                alert('Refeição atualizada com sucesso!');
+                limparModoEdicao(); // Volta ao estado inicial
+            } else {
+                // MODO CRIAÇÃO: Chama create
+                await api.dietas.create(dadosForm);
+                formCriarDieta.reset();
+            }
+            loadDietas(); // Recarrega a lista
+        } catch (error) {
+            alert('Erro ao salvar: ' + error.message);
+        }
+    });
+
+    loadDietas();
+};
+
 // COMPONENTE: PÁGINA DE EVOLUÇÃO
 const renderEvolucaoPage = () => {
-    // Define datas padrão (últimos 7 dias)
     const hoje = new Date().toISOString().split('T')[0];
     const seteDiasAtras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     appContent.innerHTML = `
         <h2>Sua Evolução</h2>
         <p>Selecione um período para ver seu desempenho.</p>
-
         <form id="form-evolucao" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
             <div>
                 <label for="data-inicio">Data Início:</label>
@@ -464,11 +627,8 @@ const renderEvolucaoPage = () => {
             </div>
             <button type="submit" style="height: 42px;">Gerar Análise</button>
         </form>
-
         <hr style="margin: 30px 0; border-top: 1px solid #eee;">
-
-        <div id="resultado-evolucao" style="display: none; animation: fadeIn 0.5s;">
-            </div>
+        <div id="resultado-evolucao" style="display: none; animation: fadeIn 0.5s;"></div>
     `;
 
     const form = document.getElementById('form-evolucao');
@@ -484,14 +644,10 @@ const renderEvolucaoPage = () => {
         resultadoDiv.style.display = 'block';
 
         try {
-            // Chama o Backend
             const dados = await api.evolucao.get(userId, inicio, fim);
-
-            // Renderiza o Resultado
             resultadoDiv.innerHTML = `
                 <div class="card-evolucao" style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     <h3 style="color: #2c3e50; margin-top: 0;">${dados.meta}</h3>
-                    
                     <div style="display: flex; justify-content: space-around; margin-top: 30px; text-align: center; flex-wrap: wrap; gap: 20px;">
                         <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; min-width: 150px;">
                             <span style="font-size: 2.5em; color: #3498db; font-weight: bold; display: block;">${dados.totalRegistros}</span>
@@ -502,9 +658,8 @@ const renderEvolucaoPage = () => {
                             <small style="color: #7f8c8d; text-transform: uppercase; font-weight: bold;">Média Diária</small>
                         </div>
                     </div>
-
                     <div style="margin-top: 30px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #555;">Consistência (Baseado na média diária)</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #555;">Consistência</label>
                         <div style="background: #e0e0e0; border-radius: 15px; height: 25px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
                             <div style="background: linear-gradient(90deg, #f1c40f, #2ecc71); 
                                         height: 100%; 
@@ -512,11 +667,9 @@ const renderEvolucaoPage = () => {
                                         transition: width 1s ease-in-out;">
                             </div>
                         </div>
-                        <small style="color: #95a5a6; display: block; margin-top: 5px;">Meta sugerida: pelo menos 1.0 hábito por dia para encher a barra.</small>
                     </div>
                 </div>
             `;
-
         } catch (error) {
             resultadoDiv.innerHTML = `<p style="color: red; background: #fee; padding: 10px; border-radius: 5px;">Erro: ${error.message}</p>`;
         }
@@ -524,27 +677,19 @@ const renderEvolucaoPage = () => {
 };
 
 // COMPONENTE: MEU PERFIL (ATUALIZAR DADOS)
-
 const renderPerfilPage = async () => {
     const userId = localStorage.getItem('userId');
-
     appContent.innerHTML = '<h3>Carregando perfil...</h3>';
-
     try {
-        // Busca os dados atuais do usuário para preencher o formulário
         const usuario = await api.usuarios.getById(userId);
-
         appContent.innerHTML = `
             <h2>Meu Perfil</h2>
             <p>Atualize seus dados para recalcular seu IMC e metas.</p>
-            
             <form id="form-perfil">
                 <label for="perfil-nome">Nome:</label>
                 <input type="text" id="perfil-nome" value="${usuario.nome}" required>
-
                 <label for="perfil-email">Email:</label>
                 <input type="email" id="perfil-email" value="${usuario.email}" required>
-
                 <div style="display: flex; gap: 10px;">
                     <div style="flex: 1;">
                         <label for="perfil-idade">Idade:</label>
@@ -559,41 +704,29 @@ const renderPerfilPage = async () => {
                         <input type="number" id="perfil-altura" value="${usuario.altura}" step="0.01" required>
                     </div>
                 </div>
-
                 <button type="submit" style="background-color: #3498db;">SALVAR ALTERAÇÕES</button>
             </form>
         `;
 
-        // Lógica de Envio do Formulário de Edição
         document.getElementById('form-perfil').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const dadosAtualizados = {
                 nome: document.getElementById('perfil-nome').value,
                 email: document.getElementById('perfil-email').value,
                 idade: parseInt(document.getElementById('perfil-idade').value),
                 peso: parseFloat(document.getElementById('perfil-peso').value),
                 altura: parseFloat(document.getElementById('perfil-altura').value),
-                // Mantém a senha antiga (enviando a que veio do banco)
                 senha: usuario.senha
             };
-
             try {
                 await api.usuarios.update(userId, dadosAtualizados);
-
-                // Atualiza o nome no localStorage caso tenha mudado
                 localStorage.setItem('userName', dadosAtualizados.nome);
-
                 alert('Perfil atualizado com sucesso!');
-
-                // Recarrega a Sidebar para atualizar o IMC imediatamente
                 await renderSidebar();
-
             } catch (error) {
                 alert('Erro ao atualizar: ' + error.message);
             }
         });
-
     } catch (error) {
         appContent.innerHTML = `<p style="color:red">Erro ao carregar perfil: ${error.message}</p>`;
     }
