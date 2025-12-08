@@ -21,6 +21,16 @@ const api = {
             if (!response.ok) throw new Error('Erro ao criar hábito.');
             return response.json();
         },
+        update: async (id, habito) => {
+            const response = await fetch(`${API_BASE_URL}/habitos/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(habito)
+            });
+            if (!response.ok) throw new Error('Erro ao atualizar hábito.');
+            return response.json();
+        },
+
         delete: async (id) => {
             const response = await fetch(`${API_BASE_URL}/habitos/${id}`, {
                 method: 'DELETE'
@@ -29,7 +39,7 @@ const api = {
             return true;
         }
     },
-    // CRUD DE DIETAS
+
     dietas: {
         getAll: async () => {
             const response = await fetch(`${API_BASE_URL}/dietas`);
@@ -337,18 +347,28 @@ const renderRegister = () => {
 };
 
 // COMPONENTE: HÁBITOS
+// COMPONENTE: HÁBITOS
 const renderHabitosPage = async () => {
+    let editandoId = null; // Variável para controlar se estamos editando
+
     appContent.innerHTML = `
         <h2>MEUS HÁBITOS</h2>
         <form id="form-criar-habito">
-            <h3>Adicionar Novo Hábito</h3>
+            <h3 id="titulo-form-habito">Adicionar Novo Hábito</h3>
+            
             <label for="habito-nome">Nome do Hábito:</label>
             <input type="text" id="habito-nome" name="nome" placeholder="Ex: Beber água" required><br>
+            
             <label for="habito-tipo">Tipo:</label>
             <input type="text" id="habito-tipo" name="tipo" placeholder="Ex: Saúde" required><br>
+            
             <label for="habito-descricao">Descrição:</label>
             <input type="text" id="habito-descricao" name="descricao" placeholder="Ex: 2 litros por dia" required><br>
-            <button type="submit">SALVAR HÁBITO</button>
+            
+            <div style="display:flex; gap:10px;">
+                <button type="submit" id="btn-salvar-habito">SALVAR HÁBITO</button>
+                <button type="button" id="btn-cancelar-edicao-habito" style="display:none; background-color: #95a5a6;">CANCELAR</button>
+            </div>
         </form>
         <hr>
         <div id="habitos-lista"><p>Carregando...</p></div>
@@ -356,6 +376,20 @@ const renderHabitosPage = async () => {
 
     const habitosListaContainer = document.getElementById('habitos-lista');
     const formCriarHabito = document.getElementById('form-criar-habito');
+    const btnSalvar = document.getElementById('btn-salvar-habito');
+    const btnCancelar = document.getElementById('btn-cancelar-edicao-habito');
+    const tituloForm = document.getElementById('titulo-form-habito');
+
+    // Função para limpar edição
+    const limparModoEdicao = () => {
+        editandoId = null;
+        formCriarHabito.reset();
+        btnSalvar.textContent = 'SALVAR HÁBITO';
+        tituloForm.textContent = 'Adicionar Novo Hábito';
+        btnCancelar.style.display = 'none';
+    };
+
+    btnCancelar.addEventListener('click', limparModoEdicao);
 
     const loadHabitos = async () => {
         habitosListaContainer.innerHTML = '<p>Carregando...</p>';
@@ -382,6 +416,7 @@ const renderHabitosPage = async () => {
                     </span>
                     <div class="habito-actions">
                         <button class="btn-concluir" data-id="${habito.id}" title="Marcar como feito hoje">Feito</button>
+                        <button class="btn-editar" data-id="${habito.id}" title="Editar hábito">Editar</button>
                         <button class="btn-excluir" data-id="${habito.id}" title="Excluir hábito">Excluir</button>
                     </div>
                 `;
@@ -389,11 +424,13 @@ const renderHabitosPage = async () => {
             });
             habitosListaContainer.appendChild(ul);
 
+            // AÇÃO: EXCLUIR
             ul.querySelectorAll('.btn-excluir').forEach(button => {
                 button.addEventListener('click', async (e) => {
                     if (confirm('Excluir este hábito permanentemente?')) {
                         try {
                             await api.habitos.delete(e.target.dataset.id);
+                            if (editandoId == e.target.dataset.id) limparModoEdicao();
                             loadHabitos();
                         } catch (error) {
                             alert(error.message);
@@ -402,6 +439,7 @@ const renderHabitosPage = async () => {
                 });
             });
 
+            // AÇÃO: CONCLUIR (Feito)
             ul.querySelectorAll('.btn-concluir').forEach(button => {
                 button.addEventListener('click', async (e) => {
                     const habitoId = e.target.dataset.id;
@@ -421,6 +459,29 @@ const renderHabitosPage = async () => {
                 });
             });
 
+            // AÇÃO: EDITAR
+            ul.querySelectorAll('.btn-editar').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    const habitoParaEditar = meusHabitos.find(h => h.id == id);
+
+                    if (habitoParaEditar) {
+                        editandoId = id;
+                        // Preenche o formulário
+                        document.getElementById('habito-nome').value = habitoParaEditar.nome;
+                        document.getElementById('habito-tipo').value = habitoParaEditar.tipo;
+                        document.getElementById('habito-descricao').value = habitoParaEditar.descricao;
+
+                        // Muda visual do formulário
+                        tituloForm.textContent = 'Editando: ' + habitoParaEditar.nome;
+                        btnSalvar.textContent = 'ATUALIZAR HÁBITO';
+                        btnCancelar.style.display = 'inline-block';
+
+                        formCriarHabito.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
         } catch (error) {
             console.error(error);
             habitosListaContainer.innerHTML = `<p style="color:red">Erro ao carregar hábitos.</p>`;
@@ -430,18 +491,27 @@ const renderHabitosPage = async () => {
     formCriarHabito.addEventListener('submit', async (e) => {
         e.preventDefault();
         const userId = localStorage.getItem('userId');
-        const novoHabito = {
+        const dadosForm = {
             nome: document.getElementById('habito-nome').value,
             tipo: document.getElementById('habito-tipo').value,
             descricao: document.getElementById('habito-descricao').value,
             usuario: { id: parseInt(userId) }
         };
+
         try {
-            await api.habitos.create(novoHabito);
-            formCriarHabito.reset();
+            if (editandoId) {
+                // MODO EDIÇÃO
+                await api.habitos.update(editandoId, dadosForm);
+                alert('Hábito atualizado com sucesso!');
+                limparModoEdicao();
+            } else {
+                // MODO CRIAÇÃO
+                await api.habitos.create(dadosForm);
+                formCriarHabito.reset();
+            }
             loadHabitos();
         } catch (error) {
-            alert('Erro ao criar: ' + error.message);
+            alert('Erro ao salvar: ' + error.message);
         }
     });
 

@@ -16,26 +16,22 @@ public class DietaController {
     @Autowired
     private DietaService dietaService;
 
-    // CREATE
     @PostMapping
     public ResponseEntity<Dieta> criar(@RequestBody Dieta dieta) {
         return new ResponseEntity<>(dietaService.criarDieta(dieta), HttpStatus.CREATED);
     }
 
-    // READ
     @GetMapping
     public ResponseEntity<List<Dieta>> listar() {
         return ResponseEntity.ok(dietaService.buscarTodas());
     }
 
-    // UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<Dieta> atualizar(@PathVariable Long id, @RequestBody Dieta dieta) {
         Dieta dietaAtualizada = dietaService.atualizarDieta(id, dieta);
         return ResponseEntity.ok(dietaAtualizada);
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         dietaService.deletarDieta(id);

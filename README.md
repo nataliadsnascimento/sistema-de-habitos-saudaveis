@@ -1,58 +1,58 @@
 # 📊 Sistema de Hábitos Saudáveis
-![Status](https://img.shields.io/badge/status-em_desenvolvimento-yellow)
+
+![Status](https://img.shields.io/badge/status-concluído-green)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-## 🎯 Objetivo do Projeto
+## Objetivo do Projeto
 
-Este projeto consiste no desenvolvimento de um sistema para monitoramento de hábitos saudáveis.
+Este projeto consiste no desenvolvimento de um sistema completo para monitoramento de hábitos saudáveis.
 
-**Backend (API RESTful):** Desenvolvido em Java com Spring Boot, seguindo arquitetura em camadas (Controller, Service, Repository) e POO.
+**Backend (API RESTful):** Desenvolvido em Java com Spring Boot, seguindo arquitetura em camadas (Controller, Service, Repository) e POO. Utiliza banco de dados H2 para persistência.
 
-**Frontend (Interface Web):** Interface responsiva desenvolvida com HTML5, CSS3 e JavaScript, consumindo a API via `fetch`.
+**Frontend (Interface Web):** Interface desenvolvida com HTML5, CSS3 e JavaScript puro, consumindo a API via `fetch`. Possui navegação dinâmica sem recarregamento de página.
 
 ---
 
 ## Funcionalidades
-### 1. Autenticação de Usuários
-* Validação de e-mail e senha diretamente no Backend.
-* Criação de conta com dados pessoais (nome, idade, peso, altura) e credenciais.
+
+### 1. Gestão de Usuários e Saúde
+* **Autenticação:** Login e Cadastro com validação de credenciais.
+* **Perfil do Usuário:** Atualização de dados cadastrais (peso, altura, idade).
+* **Cálculo de IMC:** O sistema calcula automaticamente o Índice de Massa Corporal e exibe um feedback visual (cores) na barra lateral indicando a classificação (ex: Peso normal, Sobrepeso).
 
 ### 2. Gestão de Hábitos (`/habitos`)
-* Criar novos hábitos (ex: "Beber água", "Correr").
-* Listar hábitos (exibe apenas os hábitos do usuário logado).
+* Criar novos hábitos (ex: "Beber água", "Ler 10 páginas").
+* Listar hábitos ativos do usuário.
+* Marcar hábitos como "Feito" (gera um registro automático).
 * Excluir hábitos.
 
-### 3. Diário e Registros (`/registros`)
-* Registar a execução de um hábito numa data específica.
-* Histórico de atividades.
+### 3. Gestão de Dieta e Nutrição (`/dietas`) 
+* Registro de refeições diárias.
+* Controle de calorias por refeição.
+* Descrição detalhada dos alimentos consumidos.
+* Edição e remoção de registros de dieta.
 
-### 4. Relatórios de Evolução (`/evolucao`)
-O sistema calcula o progresso do usuário com base nos registos:
-* Endpoint `/evolucao/demo` que gera um relatório automático dos últimos 7 dias.
-* Cálculo dinâmico por período.
+### 4. Diário e Registros (`/registros`)
+* Histórico de execução de hábitos com data e observações.
+* Conclusão rápida de tarefas diretamente pelo Dashboard.
+
+### 5. Relatórios de Evolução (`/evolucao`)
+* Dashboard visual com barra de progresso.
+* Endpoint `/evolucao/demo` para testes rápidos.
+* Filtro personalizado por período (Data Início e Fim) para analisar a consistência dos hábitos.
 
 ---
 
-## Estrutura da API (Endpoints)
+## 🛠 Ferramentas utilizadas
 
-| Método | Endpoint | Descrição |
-| :--- | :--- | :--- |
-| **POST** | `/usuarios` | Cadastra um novo usuário com cálculo automático de IMC futuro. |
-| **GET** | `/usuarios` | Lista usuários para validação de login. |
-| **GET** | `/habitos` | Lista todos os hábitos (filtrados no front pelo ID do usuário). |
-| **POST** | `/habitos` | Cria um hábito vinculado a um usuário. |
-| **DELETE** | `/habitos/{id}` | Remove um hábito. |
-| **GET** | `/evolucao` | `?usuarioId=1&dataInicio=...&dataFim=...` (Gera métricas). |
+| Camada | Tecnologia | Detalhes |
+| :--- |:---| :--- |
+| **Backend** | Java 21 + Spring Boot | API REST, Spring Data JPA, Lombok. |
+| **Banco de Dados** | H2 Database | Banco em memória/arquivo para desenvolvimento ágil. |
+| **Frontend** | JavaScript (ES6+) | Lógica de SPA, Fetch API, manipulação de DOM. |
+| **Estilização** | CSS3 | CSS modular (`auth.css`, `habitos.css`, etc) e Design Responsivo. |
+| **Documentação** | Swagger (OpenAPI) | Documentação automática acessível em `/swagger-ui.html`. |
 
-## Tecnologias utilizadas
-
-| Camada | Tecnologia            | Detalhes |
-| :--- |:----------------------| :--- |
-| **Backend** | Java 21 + Spring Boot | API REST, Injeção de Dependência, Spring Data JPA. |
-| **Banco de Dados** | H2 Database           | Banco em memória/arquivo para persistência ágil. |
-| **Frontend** | JavaScript            | Lógica de consumo de API (Fetch), manipulação de DOM e `localStorage`. |
-| **Frontend** | HTML5 & CSS3          | Estrutura semântica e estilização responsiva. |
-| **Documentação** | Swagger (OpenAPI)     | Documentação automática dos endpoints. |
 ---
 
 ## 💻 Como Executar o Projeto
@@ -68,21 +68,10 @@ O sistema calcula o progresso do usuário com base nos registos:
     cd Sistema-de-Habitos-Saudaveis
     ```
 
-2.  **Compile o projeto (usando Maven como exemplo):**
-    ```bash
-    # Navegue até a pasta raiz do projeto e execute:
-    mvn clean install
-    ```
-
-3.  **Execute a aplicação Spring Boot:**
-    ```bash
-    # Na mesma pasta, execute:
-    mvn spring-boot:run
-    ```
-
-4.  **Acesse a API:**
-    * O servidor deve iniciar na porta padrão do Spring Boot, **8080**.
-    * A API REST estará acessível em `http://localhost:8080/api/...`
+3.  **Acesse o Sistema:**
+    * Frontend e API estarão disponíveis em: `http://localhost:8080`
+    * Documentação Swagger: `http://localhost:8080/swagger-ui.html`
+    * Console do Banco H2: `http://localhost:8080/h2-console`
 
 ---
 
